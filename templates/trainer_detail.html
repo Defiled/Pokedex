@@ -1,0 +1,71 @@
+{% extends "main.html" %}
+{% block content %}
+
+<div>
+  <h1> Trainer Info </h1>
+
+  <div>
+    <img src="{{ user.picture }}" alt="profile_picture" style="width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;">
+    ID: {{ trainer.id }}
+    <br />
+    Name: {{ trainer.name }}
+    <br />
+    email: {{ trainer.email }}
+  </div>
+
+  <div>
+    {{ trainer.name }}'s Pokemon:
+    <ol>
+      {% for p in party: %}
+      <li>
+        <a href="{{ url_for('pokemonDetail', pokemon_id=p.pokemon_id )}}">
+          <img src="{{ p.pokemon.pokemon_sprite.sprite_url }}"
+            alt="{{ p.pokemon.pokemon_sprite.name }}">
+        </a>
+        <div>
+          Order: {{ p.party_order}} <br />
+          {{  p.nickname if p.nickname else p.pokemon.name }} &nbsp; {{ "lvl: " + p.level if p.level else "" }}
+          <br />
+          {% for t in p.pokemon.pokemon_type: %}
+            {{ t.type.name }}
+            {% endfor %}
+        </div>
+        {% if canEditDelete: %}
+          {% if p.isEditing: %}
+          <form action="{{ url_for('editPartyMember', user_id=trainer.id, user_pokemon_id=p.id ) }}" method = "POST">
+            <label>Edit your {{ p.pokemon.name }}</label>
+            Nickname: <input type="text" name="nickname"/>
+            Lvl: <input type="text" name="level"/>
+            Order: <input type="number" name="party_order" min=1 max=6 placeholder="Order Pokemon appears in party (1-6)"/>
+            <input type="submit" value="Save"/>
+          </form>
+          {% else: %}
+          <a href="{{ url_for('editPartyMember', user_id=trainer.id, user_pokemon_id=p.id) }}">
+            <button>Edit</button>
+          </a>
+          <button onclick="deletePokemon(this)" data-up-id={{p.id}}>Release</button>
+          {% endif %}
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ol>
+  </div>
+</div>
+
+<script type="text/javascript">
+function deletePokemon(obj) {
+  var trainer_id = {{ session.user_id }};
+  var user_pokemon_id = obj.getAttribute("data-up-id");
+  if (confirm('Are you sure?')) {
+    $.ajax({
+      type: 'POST',
+      url: "/trainer/" + trainer_id + "/delete/" + user_pokemon_id,
+      success: function() {
+        location.reload()
+      }
+    })
+  }
+}
+</script>
+
+{% endblock %}

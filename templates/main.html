@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<!-- Imports -->
+		<link href='http://fonts.googleapis.com/css?family=Roboto:400,300,700' rel='stylesheet' type='text/css'>
+		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"> #pikachu, bootstrap or foundation?
+		<link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles.css') }}">
+		<script
+		src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js">
+		</script>
+	</head>
+	<!-- Header -->
+	<div class="row top-menu">
+		<div class="col-md-6">
+			<a href="{{url_for('index')}}">
+				<span class="glyphicon glyphicon-home" aria-hidden="true"></span>Show All Pokemon
+			</a>
+		</div>
+		<div class="col-md-6 text-right">
+			{% if "username" in session: %}
+				<p>Logged in as {{ session.username }}</p>
+				<a href="{{ url_for('showTrainer', user_id=session.user_id) }}">
+					<button>My Profile</button>
+				</a>
+				<a href="{{ url_for('logout') }}">
+					<button>Logout</button>
+				</a>
+			{% else: %}
+				<a href="{{ url_for('login') }}">
+					<button>Login</button>
+				</a>
+			{% endif %}
+		</div>
+	</div>
+
+	<body>
+		<div class="container">
+			<div class='flash'>
+				{% with messages = get_flashed_messages() %}
+					{% if messages %}
+						<ul>
+						{% for message in messages %}
+								<li> <strong> {{ message }} </strong> </li>
+						{% endfor %}
+						</ul>
+					{% endif %}
+				{% endwith %}
+			</div>
+			{% block content %}
+			{% endblock %}
+		</div>
+	</body>
+
+	<!-- Footer?  add to all pages from separate file  pikachu -->
+</html>

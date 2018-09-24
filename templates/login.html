@@ -1,0 +1,82 @@
+{% extends "main.html" %}
+{% block content %}
+<script>
+//  Load Facebook SDK
+window.fbAsyncInit = function() {
+  FB.init({
+    appId      : '1355729074558622',
+    cookie     : true,
+    xfbml      : true,
+    version    : 'v3.1'
+  });
+  FB.AppEvents.logPageView();
+};
+
+(function(d, s, id){
+   var js, fjs = d.getElementsByTagName(s)[0];
+   if (d.getElementById(id)) {return;}
+   js = d.createElement(s); js.id = id;
+   js.src = "https://connect.facebook.net/en_US/sdk.js";
+   fjs.parentNode.insertBefore(js, fjs);
+ }(document, 'script', 'facebook-jssdk'));
+
+// Handle login
+function sendTokenToServer() {
+  FB.getLoginStatus(function(response) {
+    if (response.status === 'connected') {
+      console.log(response.authResponse.accessToken);
+      var accessToken = response.authResponse.accessToken;
+      FB.api('/me', function(response) {
+        console.log('Successful login for: ' + response.name);
+        $.ajax({
+          type: 'POST',
+          url: '/fbconnect?state={{STATE}}',
+          processData: false,
+          data: accessToken,
+          contentType: 'application/octet-stream; charset=utf-8',
+          success: function(result) {
+            // Handle or verify the server response if necessary.
+            if (result) {
+              $('#login-signup').html('Login Successful!</br>'+ result + '</br>Redirecting...')
+             setTimeout(function() {
+               window.location.href = "/pokemon/";
+             }, 4000);
+            } else {
+              $('#result').html('Failed to make a server-side call. Check your configuration and console.');
+            }
+          }
+        });
+      });
+    }
+  });
+}
+</script>
+
+<div id="signup">
+  <h2>Don't have an account? Signup here!</h2>
+  <form action="{{ url_for('signUp') }}" method="POST">
+    username: <input type="text" name="username"/>
+    email: <input type="text" name="email"/>
+    password: <input type="text" name="password" type="hidden"/>
+    confirm password: <input type="text" name="password_confirm" type="hidden"/>
+    <input type="submit" value="Register"/>
+  </form>
+</div>
+
+<div id="login">
+  <h2>Login</h2>
+  <form action="{{ url_for('login') }}" method="POST">
+    email: <input name="email" type="text"/>
+    password: <input name="password" type="text"/>
+    <input type="submit" value="Login"/>
+  </form>
+
+  <div class="fb-login">
+    <fb:login-button
+      scope="public_profile,email"
+      onlogin="sendTokenToServer();">
+    </fb:login-button>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "main.html" %}
+{% block content %}
+
+            <!-- style this -->
+  <div id class="pokemon-grid">
+        <figure>
+          <a>
+            <img src="{{ pokemon.pokemon_sprite.sprite_url }}"
+              alt="{{ pokemon.pokemon_sprite.name }}">
+          </a>
+        </figure>
+        <div class="pokemon-info">
+          <div class="id">
+            {{ pokemon.poke_id }}
+          </div>
+          <div class="name">
+            {{ pokemon.name.capitalize() }}
+          </div>
+          {% for t in pokemon.pokemon_type %}
+          <div class="type">
+            {{ t.type.name.capitalize() }}
+          </div>
+          {% endfor %}
+          <div>
+            {{ pokemon.description }}
+          </div>
+          <div>
+            {{ pokemon.height/ 10.0 }} Meters
+          </div>
+          <div>
+            {{ pokemon.weight / 10.0 }} Kg
+          </div>
+          <div>
+            {{ pokemon.generation.capitalize() }}
+          </div>
+        </div>
+        <span>
+          <a href="{{ url_for('addToParty', pokemon_id=pokemon.id) }}">
+            <button class="add-pokemon" type="submit">Add To Party</button>
+          </a>
+          <a href="{{ url_for('index') }}">
+            <button class="cancel" type="submit">Back</button>
+          </a>
+        </span>
+  </div>
+
+
+
+{% endblock %}

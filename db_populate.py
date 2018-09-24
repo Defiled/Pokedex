@@ -1,21 +1,13 @@
 import requests
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from db_setup import Base, User, Pokemon, PokemonSprites, PokemonTypes, Types
+from db_setup import Base, User, Pokemon, PokemonSprites, PokemonTypes, Types, UserPokemon
 
 # Connect to Database and create DB session
 engine = create_engine('sqlite:///pokedex.db')
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
-
-# Create a user account for testing
-testUser = User(name="Test User", email="testuser@gmail.com",
-             picture="http://www.pngmart.com/?p=10161")
-session.add(testUser)
-session.commit()
-
-print "Test user account created!"
 
 # Populate Types table
 pokemon_types = 18
@@ -35,8 +27,7 @@ print "Fetching pokemon data from https://pokeapi.co..."
 
 
 # Fetch Pokemon data and populate table
-# There are only 151 pokemon in the Kanto region, if you want to add
-pokemon_wanted = 151
+pokemon_wanted = 151 # There are only 151 pokemon in the Kanto region..
 id = 1
 while id <= pokemon_wanted:
     request_url = "https://pokeapi.co/api/v2/pokemon/" + str(id) + "/"
@@ -73,8 +64,10 @@ for p in my_pokemon:
     d = r.json()
 
     pokemon = session.query(Pokemon).filter_by(id=p.id).one()
-    pokemon.description = d["flavor_text_entries"][1]["flavor_text"]
     pokemon.generation = d["generation"]["name"]
+    for entry in d["flavor_text_entries"]:
+        if entry["language"]["name"] == "en":
+            pokemon.description = entry["flavor_text"]
     session.add(pokemon)
     session.commit()
     print str(progress) + " of " + str(len(my_pokemon)) + "..."
@@ -100,5 +93,28 @@ for p in pokemon:
 count = session.query(PokemonSprites).count()
 print "Added %s pokemon sprites to PokemonSprites table" % count
 
+
+# Create a user account with pokemon in party for testing
+testUser = User(name="John Doe", email="johndoe@gmail.com",
+             password="password", picture="http://www.pngmart.com/?p=10161")
+             # use local .png or something pikachu
+session.add(testUser)
+session.commit()
+
+pokemon_array = [
+    UserPokemon(pokemon_id=59, user_id=testUser.id, nickname="Woof", level="99", party_order=1),
+    UserPokemon(pokemon_id=131, user_id=testUser.id, nickname="Blister", level="78", party_order=2),
+    UserPokemon(pokemon_id=142, user_id=testUser.id, nickname="Stones", level="81", party_order=3),
+]
+for pm in pokemon_array:
+    session.add(pm)
+    pokemon = session.query(Pokemon).filter_by(id=pm.pokemon_id).first()
+    print pokemon.name
+    print pm.user_id
+    pm.user = testUser
+    pm.pokemon = pokemon
+session.commit()
+
+print "Test user account created with %s pokemon." % len(testUser.pokemon)
 
 print "The app is ready!"

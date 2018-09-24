@@ -1,33 +1,32 @@
-<html>
-  <body>
+{% extends "main.html" %}
+{% block content %}
+
+  <div id class="pokemon-grid">
     {% for p in pokemon: %}
-      <img src="{{ p.pokemon_sprite.sprite_url }}"
-        alt="{{ p.pokemon_sprite.name }}">
-      <ul>
-      <li>
-        {{ p.name }}
-      </li>
-      <li>
-        {% for type in p.pokemon_type %}
-          {{ type.pokemon_type.name }}
-        {% endfor %}
-      </li>
-      <li>
-        {{ p.poke_id }}
-      </li>
-      <li>
-        {{ p.description }}
-      </li>
-      <li>
-        {{ p.height }}
-      </li>
-      <li>
-        {{ p.weight }}
-      </li>
-      <li>
-        {{ p.generation }}
+    <ul class="pokemon-list">
+      <li class="pokemon-tile">
+        <figure>
+          <a href="{{ url_for('pokemonDetail', pokemon_id=p.id )}}">
+            <img src="{{ p.pokemon_sprite.sprite_url }}"
+              alt="{{ p.pokemon_sprite.name }}">
+          </a>
+        </figure>
+        <div class="pokemon-info">
+          <div class="pokemon-id">
+            {{ p.poke_id }}
+          </div>
+          <div class="pokemon-name">
+            {{ p.name.capitalize() }}
+          </div>
+        </div>
+        <a href="{{ url_for('pokemonDetail', pokemon_id = p.poke_id) }}">
+          <span>
+            <button class="view-pokemon" type="submit">View</button>
+          </span>
+        </a>
       </li>
     </ul>
     {% endfor %}
-  </body>
-</html>
+  </div>
+
+{% endblock %}
