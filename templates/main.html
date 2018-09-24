@@ -3,31 +3,35 @@
 	<head>
 		<!-- Imports -->
 		<link href='http://fonts.googleapis.com/css?family=Roboto:400,300,700' rel='stylesheet' type='text/css'>
-		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"> #pikachu, bootstrap or foundation?
+		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" />
 		<link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles.css') }}">
+		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
+		<link rel="icon"
+      type="image/png"
+      href="{{ url_for('static', filename='pokeball.ico') }}">
+		<title>Pokedex</title>
 		<script
-		src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js">
+			src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js">
 		</script>
 	</head>
 	<!-- Header -->
 	<div class="row top-menu">
 		<div class="col-md-6">
 			<a href="{{url_for('index')}}">
-				<span class="glyphicon glyphicon-home" aria-hidden="true"></span>Show All Pokemon
+				<button><i class="fas fa-list-ul"></i> Show All Pokemon</button>
 			</a>
 		</div>
 		<div class="col-md-6 text-right">
-			{% if "username" in session: %}
-				<p>Logged in as {{ session.username }}</p>
+			{% if "username" not in session: %}
+				<a href="{{ url_for('login') }}">
+					<button><i class="fas fa-sign-in-alt"></i> Login</button>
+				</a>
+			{% elif "username" in session: %}
 				<a href="{{ url_for('showTrainer', user_id=session.user_id) }}">
-					<button>My Profile</button>
+					<button><i class="fas fa-user-circle"></i> Profile ({{ session.username }})</button>
 				</a>
 				<a href="{{ url_for('logout') }}">
-					<button>Logout</button>
-				</a>
-			{% else: %}
-				<a href="{{ url_for('login') }}">
-					<button>Login</button>
+					<button><i class="fas fa-sign-out-alt"></i> Logout</button>
 				</a>
 			{% endif %}
 		</div>

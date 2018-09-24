@@ -5,7 +5,9 @@
   <h1> Trainer Info </h1>
 
   <div>
-    <img src="{{ user.picture }}" alt="profile_picture" style="width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;">
+    {% if trainer.picture: %}
+      <img src="{{ trainer.picture }}" alt="profile_picture" style="width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;">
+    {% endif %}
     ID: {{ trainer.id }}
     <br />
     Name: {{ trainer.name }}
