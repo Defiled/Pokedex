@@ -55,10 +55,10 @@ function sendTokenToServer() {
 <div id="signup">
   <h2>Don't have an account? Signup here!</h2>
   <form action="{{ url_for('signUp') }}" method="POST">
-    username: <input type="text" name="username"/>
-    email: <input type="text" name="email"/>
-    password: <input type="text" name="password" type="hidden"/>
-    confirm password: <input type="text" name="password_confirm" type="hidden"/>
+    username: <input type="text" name="username" required/>
+    email: <input type="email" name="email" required/>
+    password: <input type="password" name="password" type="hidden" required/>
+    confirm password: <input type="password" name="password_confirm" type="hidden" required/>
     <input type="submit" value="Register"/>
   </form>
 </div>
@@ -66,8 +66,8 @@ function sendTokenToServer() {
 <div id="login">
   <h2>Login</h2>
   <form action="{{ url_for('login') }}" method="POST">
-    email: <input name="email" type="text"/>
-    password: <input name="password" type="text"/>
+    email: <input name="email" type="text" required/>
+    password: <input name="password" type="password" required/>
     <input type="submit" value="Login"/>
   </form>
 

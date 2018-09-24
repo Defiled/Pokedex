@@ -18,7 +18,8 @@ from db_setup import PokemonSprites
 app = Flask(__name__)
 
 # Connect to Database and create DB session
-engine = create_engine('sqlite:///pokedex.db', pool_pre_ping=True, connect_args={'check_same_thread': False}, poolclass=StaticPool) #, poolclass=SingletonThreadPool
+engine = create_engine('sqlite:///pokedex.db', pool_pre_ping=True, poolclass=
+            StaticPool, connect_args={'check_same_thread': False})
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
@@ -31,28 +32,23 @@ session = DBSession()
 @app.route('/signup', methods=['GET', 'POST'])
 def signUp():
     if request.method == 'POST':
-        if request.form['email']:
-            email = request.form['email']
-            exists = session.query(User).filter_by(email=email).first()
-            if exists:
-                flash("A user with this email is already registered.")
-                return redirect(url_for('login'))
-            if request.form['password'] and request.form['password_confirm']:
-                pass1 = request.form['password']
-                pass2 = request.form['password_confirm']
-                if pass1 != pass2:
-                    flash("Passwords do not match!")
-                    return redirect(url_for('login'))
-            if request.form['username']:
-                name = request.form['username']
-                user = User(name=name, email=email, password=pass1)
-                session.add(user)
-                session.commit()
-                setSession(user_info=user)
-                flash("Account succesfully created!")
-                return redirect(url_for('home'))
-            else:
-                return flash("No username entered")
+        email = request.form['email']
+        exists = session.query(User).filter_by(email=email).first()
+        if exists:
+            flash("A user with this email is already registered.")
+            return redirect(url_for('login'))
+        pass1 = request.form['password']
+        pass2 = request.form['password_confirm']
+        if pass1 != pass2:
+            flash("Passwords do not match. Please try again.")
+            return redirect(url_for('login'))
+        name = request.form['username']
+        user = User(name=name, email=email, password=pass1)
+        session.add(user)
+        session.commit()
+        setSession(user_info=user)
+        flash("You are logged in registered!")
+        return redirect(url_for('home'))
 
 # Login page
 @app.route('/login', methods=['GET', 'POST'])
@@ -61,18 +57,16 @@ def login():
         state = ''.join(random.choice(string.ascii_uppercase + string.digits)
             for x in xrange(32))
         login_session['state'] = state
+        return render_template('login.html', STATE=state)
     if request.method == 'POST':
-        if request.form['email'] and request.form['password']:
-            email = request.form['email']
-            password = request.form['password']
-            user = session.query(User).filter_by(email=email, password=password).first()
-            if user.id:
-                setSession(user_info=user)
-                flash("Logged in as %s" % login_session['username'])
-                return redirect(url_for('showTrainer', user_id=login_session['user_id']))
-        else:
-            return flash("Email or password not entered.")
-    return render_template('login.html', STATE=state)
+        email = request.form['email']
+        password = request.form['password']
+        user = session.query(User).filter_by(email=email, password=
+            password).first()
+        if user.id:
+            setSession(user_info=user)
+            flash("Logged in as %s" % login_session['username'])
+            return redirect(url_for('showTrainer', user_id=user.id))
 
 # Facebook login
 @app.route('/fbconnect', methods=['POST'])
@@ -136,12 +130,13 @@ def logout():
     if 'access_token' in login_session:
         access_token = login_session['access_token']
         facebook_id = login_session['facebook_id']
-        url = 'https://graph.facebook.com/%s/permissions?access_token=%s' % (facebook_id,access_token)
+        url = 'https://graph.facebook.com/%s/permissions?access_token=%s' % (
+            facebook_id,access_token)
         h = httplib2.Http()
         result = h.request(url, 'DELETE')[1]
     login_session.clear()
     flash("you have been logged out")
-    return redirect(url_for('index'))
+    return redirect(url_for('login'))
 
 #                           #
 # <---- CRUD Methods -----> #
@@ -152,10 +147,9 @@ def logout():
 @app.route('/pokemon/')
 def index():
   session.close()
-  pokemon = session.query(Pokemon).order_by(Pokemon.poke_id)
-  if 'username' not in login_session:
-      user = False
-  else:
+  pokemon = session.query(Pokemon).order_by(Pokemon.poke_id).all()
+  user = False
+  if 'username' in login_session:
       user = login_session["username"]
   return render_template('pokemon.html', pokemon=pokemon, user=user)
   # TODO add functionality that allows showPokemon to filter based on region id
@@ -165,13 +159,12 @@ def index():
 def pokemonDetail(pokemon_id):
   session.close()
   pokemon = findPokemon(pokemon_id)
-  return render_template('pokemon_detail.html', pokemon=pokemon, user=
-    login_session)
+  return render_template('pokemon_detail.html', pokemon=pokemon)
 
-# Show pokemon trainer profile page (users)
+# Show trainer profile page (users)
 @app.route('/trainer/<int:user_id>/')
 def showTrainer(user_id):
-    user = session.query(User).filter_by(id=user_id).first() # pikachu
+    user = getUser(user_id)
     if not user:
         print user
         flash("There is no trainer with that ID...")
@@ -180,7 +173,7 @@ def showTrainer(user_id):
         flash("You must login to view trainer profiles.")
         return redirect('/login')
     if user_id == login_session["user_id"]:
-        flash("This is your trainer profile. You may make changes to your party.")
+        flash("You may add, edit and delete pokemon in your party.")
         canEditDelete = True
     if user_id != login_session["user_id"]:
         flash("You may not make changes to another trainer's party.")
@@ -188,13 +181,12 @@ def showTrainer(user_id):
     party = getPartyOrdered(user_id)
     return render_template('trainer_detail.html', trainer=user, party=party,
         canEditDelete=canEditDelete, isEditing=False, user=login_session)
-    # TODO abstract user and party DB calls to seperate functions and update other functions
 
 # Edit a pokemon in your party
 @app.route('/trainer/<int:user_id>/edit/<int:user_pokemon_id>', methods=['GET','POST'])
 def editPartyMember(user_id, user_pokemon_id):
     # Authorization pikachu simplify authorization process on all these functions
-    if 'username' not in login_session: # does this need to be so verbose? better way to do it..
+    if 'username' not in login_session:
         flash("You must be logged in to edit pokemon in a party.")
         return redirect('/login')
     if user_id != login_session["user_id"]:
@@ -202,27 +194,21 @@ def editPartyMember(user_id, user_pokemon_id):
         return redirect('/pokemon')
     if user_id == login_session["user_id"]:
         session.close()
-        user_pokemon = session.query(UserPokemon).filter_by(id=user_pokemon_id).one() #findUserPokemon(user_pokemon_id pikachu
+        user_pokemon = findUserPokemon(user_pokemon_id)
         if request.method == 'POST':
             if request.form['nickname']:
                 user_pokemon.nickname = request.form['nickname']
             if request.form['level']:
                 user_pokemon.level = request.form['level']
             if request.form['party_order']:
+                # Set party_order of party members with same party_order to None
                 party = session.query(UserPokemon).filter_by(user_id=
                     user_id).all()
-                # If duplicate party_order found, set to None
-                # pikachu figure out why the fuck this isnt matchin
-                print type(request.form['party_order']) + ", " + request.form['party_order']
-                print type(user_pokemon.party_order) + ", " + user_pokemon.party_order
                 for p in party:
-                    print type(p.party_order) + ", " + p.party_order
-                    # not finding match, and then setting matches order to None
-                    if p.party_order == request.form['party_order']:
-                        print "match found"
-                        p.party_order = user_pokemon.party_order
+                    if p.party_order == int(request.form['party_order']):
+                        p.party_order = None
                         session.commit()
-                user_pokemon.party_order = request.form['party_order']
+                user_pokemon.party_order = int(request.form['party_order'])
             session.add(user_pokemon)
             flash("Successfully updated!")
             session.commit()
@@ -249,7 +235,7 @@ def addToParty(pokemon_id):
     if remaining_slots < 1:
         flash("Your party is full. Release a pokemon to add another.")
         return redirect(url_for('showTrainer', user_id=user_id))
-    pokemon = session.query(Pokemon).filter_by(id=pokemon_id).one() # pikachu findPokemon(pokemon_id)
+    pokemon = findPokemon(pokemon_id)
     newPokemon = UserPokemon(pokemon_id=pokemon_id, user_id=user_id,
         pokemon=pokemon)
     session.add(newPokemon)
@@ -290,8 +276,8 @@ def setSession(user_info):
     login_session['picture'] = user_info.picture
     return login_session
 
-def getUserInfo(id):
-    return session.query(User).filter_by(id=id).one()
+def getUser(id):
+    return session.query(User).filter_by(id=id).first()
 
 def getPartyOrdered(id):
     return session.query(UserPokemon).filter(UserPokemon.user_id==id).order_by(
