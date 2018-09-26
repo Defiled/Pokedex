@@ -1,3 +1,47 @@
+/* header */
+.pokeballs {
+  position: absolute;
+  height: 45px;
+  width: 45px;
+  left: 50%;
+  margin-left: -22.5px;
+  margin-top: -20px;
+  /* animation: App-logo-spin infinite 20s linear; */
+  animation: slideDown .5s;
+}
+.pokeballs:hover {
+  animation: grow 1s;
+}
+@keyframes slideDown {
+	0% {
+		transform: translateY(-100%);
+	}
+	50%{
+		transform: translateY(8%);
+	}
+	65%{
+		transform: translateY(-4%);
+	}
+	80%{
+		transform: translateY(4%);
+	}
+	95%{
+		transform: translateY(-2%);
+	}
+	100% {
+		transform: translateY(0%);
+    transform: rotate(360deg);
+	}
+}
+@keyframes grow {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
 /* pokemon */
 
 ul.pokemon-list {
