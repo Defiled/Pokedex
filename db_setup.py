@@ -19,12 +19,13 @@ class User(Base):
 class Pokemon(Base):
     __tablename__ = 'pokemon'
     id = Column(Integer, primary_key=True)
-    poke_id = Column(Integer)
+    # poke_id = Column(Integer)
     name = Column(String(250))
     description = Column(Text)
     weight = Column(Integer)
     height = Column(Integer)
     generation = Column(String(250))
+    region_name = Column(String(250))
 
     pokemon_sprite = relationship("PokemonSprites", uselist=False,
         back_populates="pokemon")

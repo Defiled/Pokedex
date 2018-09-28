@@ -1,32 +1,52 @@
 {% extends "main.html" %}
 {% block content %}
 
-  <div id class="pokemon-grid">
-    {% for p in pokemon: %}
+  <div class="container">
+
+    <div class="text-center">
+	    <form class="form-inline my-2 my-lg-0">
+	      <input class="form-control mr-sm-2" type="search" placeholder="Search by pokemon ID or name..." aria-label="Search">
+	      <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+	    </form>
+      <div class="btn-group" role="group" aria-label="Pokemon Region Filter">
+        {% for r in regions: %}
+          <button class="btn filter px-1" id="{{ r.region_name }}" data-toggle="button">
+            {{ r.region_name }}
+          </button>
+        {% endfor %}
+      </div>
+      <div class="btn-group" role="group" aria-label="Pokemon Type Filter">
+        {% for t in types: %}
+          <button class="btn filter px-1" id="{{ t.name }}" data-toggle="button">
+            {{ t.name }}
+          </button>
+        {% endfor %}
+      </div>
+    </div>
+
     <ul class="pokemon-list">
-      <li class="pokemon-tile">
-        <figure>
-          <a href="{{ url_for('pokemonDetail', pokemon_id=p.id )}}">
-            <img src="{{ p.pokemon_sprite.sprite_url }}"
+      {% for p in pokemon: %}
+      <li class="tile p-1">
+        <a class="tile-link" href="{{ url_for('pokemonDetail', pokemon_id=p.id) }}" role="button">
+          <div class="sprite">
+            <img height="75" width="75" src="{{ p.pokemon_sprite.sprite_url }}"
               alt="{{ p.pokemon_sprite.name }}">
-          </a>
-        </figure>
-        <div class="pokemon-info">
-          <div class="pokemon-id">
-            {{ p.poke_id }}
           </div>
-          <div class="pokemon-name">
-            {{ p.name.capitalize() }}
+          <div class="text-center">
+            <div class="id">
+              #{{ p.id }}
+            </div>
+            <div class="name text-capitalize">
+              {{ p.name }}
+            </div>
+            {% for t in p.pokemon_type: %}
+              <span class="{{ t.type.name }}" id="type">{{ t.type.name }}</span>
+            {% endfor %}
           </div>
-        </div>
-        <a href="{{ url_for('pokemonDetail', pokemon_id = p.poke_id) }}">
-          <span>
-            <button class="view-pokemon" type="submit">View</button>
-          </span>
         </a>
       </li>
+      {% endfor %}
     </ul>
-    {% endfor %}
   </div>
 
 {% endblock %}

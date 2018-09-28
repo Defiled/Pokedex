@@ -145,21 +145,28 @@ def logout():
 # Home page
 @app.route('/')
 @app.route('/pokemon/')
-def index():
-  session.close()
-  pokemon = session.query(Pokemon).order_by(Pokemon.poke_id).all()
-  user = False
-  if 'username' in login_session:
-      user = login_session["username"]
-  return render_template('pokemon.html', pokemon=pokemon, user=user)
-  # TODO add functionality that allows showPokemon to filter based on region id
+def index(filters=False):
+    pokemon = session.query(Pokemon).order_by(Pokemon.id).all()
+    # Filter pokemon (This so fehking messy) pikachu
+    if filters != False:
+        pokemon = filterPokemon(pokemon)
+    else:
+        pokemon = pokemon
+    types = session.query(Types).all()
+    regions = session.query(Pokemon).group_by(Pokemon.region_name).all()
+    user = False
+    if 'username' in login_session:
+        # Pass the user obj through here to be used in main.html throughout site
+        user = login_session["username"]
+    return render_template('pokemon.html', pokemon=pokemon, types=types,
+        regions=regions, user=user)
 
 # Show details of a specific pokemon
 @app.route('/pokemon/<int:pokemon_id>')
 def pokemonDetail(pokemon_id):
-  session.close()
-  pokemon = findPokemon(pokemon_id)
-  return render_template('pokemon_detail.html', pokemon=pokemon)
+    session.close()
+    pokemon = findPokemon(pokemon_id)
+    return render_template('pokemon_detail.html', pokemon=pokemon)
 
 # Show trainer profile page (users)
 @app.route('/trainer/<int:user_id>/')
@@ -289,6 +296,39 @@ def findPokemon(id):
 
 def findUserPokemon(id):
     return session.query(UserPokemon).filter_by(id=id).one()
+
+def filterPokemon(filters):
+    # pikachu, clean this up
+    if 'name_id' in filters:
+        for p in pokemon:
+            if p.name.find(name_id) != -1 or p.id == name_id:
+                matches.append(p)
+    if 'region' in filters:
+        if len(matches) == 0:
+            for p in pokemon:
+                if p.region == region:
+                    matches.append(p)
+        else:
+            for m in matches:
+                if m.region == region:
+                    matches.append(m)
+    if 'type' in filters:
+        if len(matches) == 0:
+            for p in pokemon:
+                if p.type.type.name == type:
+                    matches.append(p)
+        else:
+            for m in matches:
+                if m.type.type.name == type:
+                    matches.append(m)
+    return matches
+
+#                               #
+# <---- Filter Functions -----> #
+#                               #
+# def filterByType(type): pikachu delete
+#     pokemon = session.query(Pokemon).filter_by(Pokemon.type.type.name=type).all()
+
 
 #                       #
 # <---- JSON API -----> #
