@@ -1,52 +1,61 @@
 {% extends "main.html" %}
 {% block content %}
+    <div class="filters py-3">
+      <!-- <span>
+        <input class="search" type="search" placeholder="Search by pokemon ID or name..." aria-label="Search">
+      </span> pikachu -->
 
-  <div class="container">
-
-    <div class="text-center">
-	    <form class="form-inline my-2 my-lg-0">
-	      <input class="form-control mr-sm-2" type="search" placeholder="Search by pokemon ID or name..." aria-label="Search">
-	      <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-	    </form>
-      <div class="btn-group" role="group" aria-label="Pokemon Region Filter">
-        {% for r in regions: %}
-          <button class="btn filter px-1" id="{{ r.region_name }}" data-toggle="button">
-            {{ r.region_name }}
-          </button>
-        {% endfor %}
-      </div>
-      <div class="btn-group" role="group" aria-label="Pokemon Type Filter">
+      <div class="btn-group" role="group" aria-label="Pokemon type filter">
         {% for t in types: %}
-          <button class="btn filter px-1" id="{{ t.name }}" data-toggle="button">
+        <a href="{{ url_for('pokemonByType', type=t.name) }}">
+          <button class="btn filter-btn type px-1 text-capitalize" id="{{ t.name }}"
+              role="button" type="button">
             {{ t.name }}
           </button>
+        </a>
         {% endfor %}
+      </div>
+      <div class="btn-group" role="group" aria-label="Pokemon region filter">
+        <button class="btn btn-info dropdown-toggle filter-btn" id="regionDropdown"
+            type="button" data-toggle="dropdown" aria-haspopup="true"
+            aria-expanded="false" role="button">
+          Region
+        </button>
+        <div class="dropdown-menu" aria-labelledby="regionDropdown">
+        {% for r in regions: %}
+        <a href="{{ url_for('pokemonByRegion', region_name=r.region_name) }}">
+          <button class="dropdown-item text-capitalize" type="button">
+            {{ r.region_name }}
+          </button>
+        </a>
+        {% endfor %}
+        </div>
       </div>
     </div>
 
-    <ul class="pokemon-list">
-      {% for p in pokemon: %}
-      <li class="tile p-1">
-        <a class="tile-link" href="{{ url_for('pokemonDetail', pokemon_id=p.id) }}" role="button">
-          <div class="sprite">
-            <img height="75" width="75" src="{{ p.pokemon_sprite.sprite_url }}"
-              alt="{{ p.pokemon_sprite.name }}">
-          </div>
-          <div class="text-center">
-            <div class="id">
-              #{{ p.id }}
+    <div class="container">
+      <ul class="pokemon-list">
+        {% for p in pokemon: %}
+        <li class="tile p-1">
+          <a class="tile-link" onclick="loadPokemonDetail(pokemon_id={{p.id}})" href="javascript:void(0);">
+            <div>
+              <img height="75" width="75" src="{{ p.pokemon_sprite.sprite_url }}"
+                alt="{{ p.pokemon_sprite.name }}">
             </div>
-            <div class="name text-capitalize">
-              {{ p.name }}
+            <div class="text-center">
+              <div class="id">
+                #{{ p.id }}
+              </div>
+              <div class="name text-capitalize">
+                {{ p.name }}
+              </div>
+              {% for t in p.pokemon_type: %}
+                <span class="{{ t.type.name }}" id="type">{{ t.type.name }}</span>
+              {% endfor %}
             </div>
-            {% for t in p.pokemon_type: %}
-              <span class="{{ t.type.name }}" id="type">{{ t.type.name }}</span>
-            {% endfor %}
-          </div>
-        </a>
-      </li>
-      {% endfor %}
-    </ul>
-  </div>
-
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
 {% endblock %}

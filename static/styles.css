@@ -1,4 +1,15 @@
-/* header */
+/* Global */
+body {
+  font-family: Franklin Gothic Medium,Franklin Gothic,ITC Franklin Gothic,Arial,sans-serif;
+}
+.flash {
+  list-style: none;
+}
+.font-18 {
+  font-size: 18px !important;
+}
+
+/* Navbar */
 .pokeballs {
   position: absolute;
   height: 45px;
@@ -6,18 +17,9 @@
   left: 50%;
   margin-left: -22.5px;
   margin-top: -20px;
-  animation: slideDown 3s linear;
 }
 .pokeballs:hover {
   animation: grow 1s;
-}
-@keyframes slideDown {
-	0% {
-		transform: translateY(-100%);
-	}
-	100% {
-		transform: translateY(0%);
-	}
 }
 @keyframes grow {
   0%,
@@ -29,21 +31,30 @@
   }
 }
 
-/* Site wide */
-body {
-  font-family: Franklin Gothic Medium,Franklin Gothic,ITC Franklin Gothic,Arial,sans-serif;
-}
 
 /* Filters */
-.filter {
-  border: 1px solid;
-  border-radius: 4px;
-  color: white;
-  display: inline-block;
+.filters {
+  text-align: center;
+}
+.search {
+  width: 300px;
+  border-radius: 6px;
+  border: 1px solid gray;
+}
+.search:focus {
+  border: 2px solid blue;
 }
 
-/* pokemon */
-ul.pokemon-list {
+.filter-btn {
+  color: black;
+}
+.filter-btn:hover {
+  color: white;
+}
+
+
+/* Pokemon List */
+ul.pokemon-list, ol.party-list {
   list-style: none;
   padding-left: 0;
   text-align: center;
@@ -58,39 +69,57 @@ ul.pokemon-list {
   text-decoration: none;
 }
 
-.sprite {
-  text-align: center;
-}
-
 .id {
   font-size: 12px;
 }
-.id, .name {
-  color: #212529;
-}
+
 .name {
-  font-weight: 500;
   font-size: 14px;
+  font-weight: 500;
   margin-top: -6px;
   margin-bottom: -10px;
 }
+
+.id, .name {
+  color: #212529;
+}
+
 #type {
   font-size: 13px;
 }
 
 
-/* pokemon_detail */
+/* Pokemon Details */
+figure.poke-pic {
+  width: 35%;
+}
 
-
-/* trainer_detail  */
+/* Profile Page */
 .profile-pic {
   width: 300px;
   height: 300px;
   border-radius: 150px;
 }
 
-/* Type Styles */
+.party-item {
+  display: inline-block;
+  width: 180px;
+  height: 100%;
+}
 
+/* Footer */
+.footer {
+  position: relative;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  height: 60px;
+  padding: 1rem;
+  color: white;
+}
+
+
+/* Type Styles */
 #normal {
   background-color: #aa9;
 }

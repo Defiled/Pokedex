@@ -38,7 +38,7 @@ def signUp():
             flash("A user with this email is already registered.")
             return redirect(url_for('login'))
         pass1 = request.form['password']
-        pass2 = request.form['password_confirm']
+        pass2 = request.form['passwordConfirm']
         if pass1 != pass2:
             flash("Passwords do not match. Please try again.")
             return redirect(url_for('login'))
@@ -48,7 +48,7 @@ def signUp():
         session.commit()
         setSession(user_info=user)
         flash("You are logged in registered!")
-        return redirect(url_for('home'))
+        return redirect(url_for('index'))
 
 # Login page
 @app.route('/login', methods=['GET', 'POST'])
@@ -99,13 +99,12 @@ def fbconnect():
     print "API JSON result: %s" % result
     data = json.loads(result)
 
-    test = session.query(User).filter_by(email="waldorabie@gmail.com").first()
-    session.delete(test)
-
     # Check if user exists
     user = session.query(User).filter_by(email=data["email"]).first()
     if not user:
+        print "making user"
         user = createUser(data)
+        print "user made"
         # Get user picture
         url = 'https://graph.facebook.com/v2.8/me/picture?access_token=%s&redirect=0&height=200&width=200' % token
         h = httplib2.Http()
@@ -135,23 +134,18 @@ def logout():
         h = httplib2.Http()
         result = h.request(url, 'DELETE')[1]
     login_session.clear()
-    flash("you have been logged out")
+    flash("You have been logged out.")
     return redirect(url_for('login'))
 
 #                           #
 # <---- CRUD Methods -----> #
 #                           #
 
-# Home page
+# Display all pokemon (Home)
 @app.route('/')
 @app.route('/pokemon/')
-def index(filters=False):
+def index():
     pokemon = session.query(Pokemon).order_by(Pokemon.id).all()
-    # Filter pokemon (This so fehking messy) pikachu
-    if filters != False:
-        pokemon = filterPokemon(pokemon)
-    else:
-        pokemon = pokemon
     types = session.query(Types).all()
     regions = session.query(Pokemon).group_by(Pokemon.region_name).all()
     user = False
@@ -161,10 +155,40 @@ def index(filters=False):
     return render_template('pokemon.html', pokemon=pokemon, types=types,
         regions=regions, user=user)
 
-# Show details of a specific pokemon
-@app.route('/pokemon/<int:pokemon_id>')
-def pokemonDetail(pokemon_id):
-    session.close()
+# Filter pokemon by type
+@app.route('/pokemon/type/<string:type>')
+def pokemonByType(type):
+    # TODO: Come up with a more eloquent solution to do this ya idiot...
+    pokemon = session.query(Pokemon).all()
+    pokemon_filtered = []
+    type_id = session.query(Types.id).filter_by(name=type).one()
+    pokemon_ids = session.query(PokemonTypes.pokemon_id).filter_by(type_id=type_id[0]).all()
+    for p in pokemon[:]:
+        for pi in pokemon_ids:
+            if p.id == pi[0]:
+                pokemon_filtered.append(p)
+    types = session.query(Types).all()
+    regions = session.query(Pokemon).group_by(Pokemon.region_name).all()
+    return render_template('pokemon.html', pokemon=pokemon_filtered, types=types,
+        regions=regions)
+
+# Filter pokemon by region
+@app.route('/pokemon/region/<string:region_name>')
+def pokemonByRegion(region_name):
+    # TODO: Shouldn't need to have to load types and regions and again...
+    # perhaps separate pokemon.html and filters into separate templates and only
+    # rerender pokemon.html each time
+    pokemon = session.query(Pokemon).filter_by(region_name=region_name).all()
+    types = session.query(Types).all()
+    regions = session.query(Pokemon).group_by(Pokemon.region_name).all()
+    return render_template('pokemon.html', pokemon=pokemon, types=types,
+        regions=regions)
+
+# Get details of a specific pokemon
+@app.route('/pokemon/detail', methods=['POST'])
+def pokemonDetail():
+    # session.close()
+    pokemon_id = request.data
     pokemon = findPokemon(pokemon_id)
     return render_template('pokemon_detail.html', pokemon=pokemon)
 
@@ -175,7 +199,7 @@ def showTrainer(user_id):
     if not user:
         print user
         flash("There is no trainer with that ID...")
-        return redirect(url_for('home'))
+        return redirect(url_for('index'))
     if 'username' not in login_session:
         flash("You must login to view trainer profiles.")
         return redirect('/login')
@@ -297,31 +321,31 @@ def findPokemon(id):
 def findUserPokemon(id):
     return session.query(UserPokemon).filter_by(id=id).one()
 
-def filterPokemon(filters):
-    # pikachu, clean this up
-    if 'name_id' in filters:
-        for p in pokemon:
-            if p.name.find(name_id) != -1 or p.id == name_id:
-                matches.append(p)
-    if 'region' in filters:
-        if len(matches) == 0:
-            for p in pokemon:
-                if p.region == region:
-                    matches.append(p)
-        else:
-            for m in matches:
-                if m.region == region:
-                    matches.append(m)
-    if 'type' in filters:
-        if len(matches) == 0:
-            for p in pokemon:
-                if p.type.type.name == type:
-                    matches.append(p)
-        else:
-            for m in matches:
-                if m.type.type.name == type:
-                    matches.append(m)
-    return matches
+# def filterPokemon(filters):
+#     # pikachu, clean this up
+#     if 'name_id' in filters:
+#         for p in pokemon:
+#             if p.name.find(name_id) != -1 or p.id == name_id:
+#                 matches.append(p)
+#     if 'region' in filters:
+#         if len(matches) == 0:
+#             for p in pokemon:
+#                 if p.region == region:
+#                     matches.append(p)
+#         else:
+#             for m in matches:
+#                 if m.region == region:
+#                     matches.append(m)
+#     if 'type' in filters:
+#         if len(matches) == 0:
+#             for p in pokemon:
+#                 if p.type.type.name == type:
+#                     matches.append(p)
+#         else:
+#             for m in matches:
+#                 if m.type.type.name == type:
+#                     matches.append(m)
+#     return matches
 
 #                               #
 # <---- Filter Functions -----> #

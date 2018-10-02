@@ -4,48 +4,73 @@
 <div>
   <h1> Trainer Info </h1>
 
-  <div>
+  <div class="row">
     {% if trainer.picture: %}
-      <img src="{{ trainer.picture }}" alt="profile_picture" style="width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;">
+    <div class="col-md-2">
+      <figure class="figure">
+        <img class="figure-img img-fluid rounded" src="{{ trainer.picture }}" alt="Profile picture">
+      </figure>
+    </div>
     {% endif %}
-    ID: {{ trainer.id }}
-    <br />
-    Name: {{ trainer.name }}
-    <br />
-    email: {{ trainer.email }}
+    <div class="col-md-3">
+      <span>
+        <strong>ID:</strong> {{ trainer.id }}
+      </span>
+      <br />
+      <span>
+        <strong>Name:</strong> {{ trainer.name }}
+      </span>
+      <br />
+      <span>
+        <strong>Email:</strong> {{ trainer.email }}
+      </span>
+    </div>
   </div>
 
   <div>
-    {{ trainer.name }}'s Pokemon:
-    <ol>
+    <h4>{{ trainer.name }}'s Party:</h4>
+    <ol class="party-list">
       {% for p in party: %}
-      <li>
-        <a href="{{ url_for('pokemonDetail', pokemon_id=p.pokemon_id )}}">
+      <li class="party-item">
+        <a onclick="loadPokemonDetail(pokemon_id={{p.pokemon.id}})" href="javascript:void(0);">
           <img src="{{ p.pokemon.pokemon_sprite.sprite_url }}"
             alt="{{ p.pokemon.pokemon_sprite.name }}">
         </a>
-        <div>
-          Order: {{ p.party_order}} <br />
-          {{  p.nickname if p.nickname else p.pokemon.name }} &nbsp; {{ "lvl: " + p.level if p.level else "" }}
-          <br />
+        <div class="text-center text-capitalize">
+          <div class="id">
+            #{{ p.pokemon.id }}
+          </div>
+          <div class="name text-capitalize">
+            <span class="font-18">{{ p.nickname if p.nickname else p.pokemon.name }} </span> <span>{{ "lvl: " + p.level if p.level else "" }}</span>
+          </div>
           {% for t in p.pokemon.pokemon_type: %}
-            {{ t.type.name }}
-            {% endfor %}
+            <span class="{{ t.type.name }}" id="type">{{ t.type.name }}</span>
+          {% endfor %}
         </div>
         {% if canEditDelete: %}
           {% if p.isEditing: %}
+          <hr />
           <form action="{{ url_for('editPartyMember', user_id=trainer.id, user_pokemon_id=p.id ) }}" method = "POST">
-            <label>Edit your {{ p.pokemon.name }}</label>
-            Nickname: <input type="text" name="nickname"/>
-            Lvl: <input type="text" name="level"/>
-            Order: <input type="number" name="party_order" min=1 max=6 placeholder="Order Pokemon appears in party (1-6)"/>
-            <input type="submit" value="Save"/>
+            <label class="font-italic">Edit your {{ p.pokemon.name.capitalize() }}</label>
+            <div class="form-group">
+              <label class="justify-content-start" for="nickname">Nickname </label>
+              <input type="text" name="nickname" class="form-control" id="nickname" placeholder="Choose a nickname...">
+            </div>
+            <div class="form-group">
+              <label class="justify-content-start" for="level">Level </label>
+              <input type="text" name="level" class="form-control" id="level" placeholder="Choose a level...">
+            </div>
+            <div class="form-group">
+              <label class="justify-content-start" for="order">Order in party </label>
+              <input type="number" name="party_order" min=1 max=6 class="form-control" id="order" placeholder="Between 1 and 6...">
+            </div>
+            <input class="btn btn-success" type="submit" value="Save"/>
           </form>
           {% else: %}
           <a href="{{ url_for('editPartyMember', user_id=trainer.id, user_pokemon_id=p.id) }}">
-            <button>Edit</button>
+            <button class="btn btn-primary">Edit</button>
           </a>
-          <button onclick="deletePokemon(this)" data-up-id={{p.id}}>Release</button>
+          <button class="btn btn-warning" onclick="deletePokemon(this)" data-up-id={{p.id}}>Release</button>
           {% endif %}
         {% endif %}
       </li>

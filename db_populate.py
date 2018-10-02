@@ -39,6 +39,8 @@ while id <= pokemon_wanted:
     #     d["name"] = "minior"
     # if d["name"] == "mimikyu-disguised":
     #     d["name"] = "mimikyu"
+    if d["name"] == "basculin-red-striped":
+        d["name"] = "basculin"
 
     # Store Pokemon data
     pokemon = Pokemon(name=d["name"], weight=d["weight"], height=d["height"])
@@ -104,14 +106,15 @@ print "Building sprite url's..."
 pokemon = session.query(Pokemon).all()
 progress = 1
 for p in pokemon:
-    if p.region_name in ["kanto", "johto", "hoenn"]:
-        sprite_base_url = "https://img.pokemondb.net/sprites/ruby-sapphire/normal/"
-    if p.region_name in ["sinnoh", "unova"]:
-        sprite_base_url = "https://img.pokemondb.net/sprites/black-white/normal/"
-    if p.region_name == "kalos":
-        sprite_base_url = "https://img.pokemondb.net/sprites/x-y/normal/"
-    if p.region_name == "alola":
-        sprite_base_url = "https://img.pokemondb.net/sprites/sun-moon/dex/normal/"
+    # if p.region_name in ["kanto", "johto", "hoenn"]:
+    #     sprite_base_url = "https://img.pokemondb.net/sprites/ruby-sapphire/normal/"
+    # if p.region_name in ["sinnoh", "unova"]:
+    #     sprite_base_url = "https://img.pokemondb.net/sprites/black-white/normal/"
+    # if p.region_name == "kalos":
+    #     sprite_base_url = "https://img.pokemondb.net/sprites/x-y/normal/"
+    # if p.region_name == "alola":
+    #     sprite_base_url = "https://img.pokemondb.net/sprites/sun-moon/dex/normal/"
+    sprite_base_url = "https://img.pokemondb.net/sprites/x-y/normal/"
     sprite_url = sprite_base_url + p.name + ".png"
     sprite = PokemonSprites(name=p.name, sprite_url=sprite_url, pokemon_id=p.id,
         pokemon=p)
