@@ -58,6 +58,7 @@ ul.pokemon-list, ol.party-list {
   list-style: none;
   padding-left: 0;
   text-align: center;
+  padding-bottom: 50px;
 }
 
 .tile {
@@ -109,10 +110,6 @@ figure.poke-pic {
 
 /* Footer */
 .footer {
-  position: relative;
-  bottom: 0;
-  right: 0;
-  left: 0;
   height: 60px;
   padding: 1rem;
   color: white;
