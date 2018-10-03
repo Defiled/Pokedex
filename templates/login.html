@@ -1,6 +1,38 @@
 {% extends "main.html" %}
 {% block content %}
 
+<!--LOAD PRE-REQUISITES FOR GOOGLE SIGN IN -->
+<script src="//apis.google.com/js/platform.js?onload=start"> </script>
+<!-- END PRE-REQUISITES FOR GOOGLE SIGN IN -->
+
+<script>
+function signInCallback(authResult) {
+  if (authResult['code']) {
+    // Hide the sign-in button now that the user is authorized
+    // $('#signinButton').attr('style', 'display: none');
+    // Send the one-time-use code to the server, if the server responds, write a 'login successful' message to the web page and then redirect back to the main restaurants page
+    $.ajax({
+      type: 'POST',
+      url: '/gconnect?state={{STATE}}',
+      processData: false,
+      data: authResult['code'],
+      contentType: 'application/octet-stream; charset=utf-8',
+      success: function(result) {
+        // Handle or verify the server response if necessary.
+        if (result) {
+          $('#redirecting').html('Login Successful!</br></br>Redirecting...')
+           setTimeout(function() {
+            window.location.href = "/pokemon";
+          }, 2000);
+        } else if (authResult['error']) {
+            console.log('There was an error: ' + authResult['error']);
+        } else {
+          $('#result').html('Failed to make a server-side call. Check your configuration and console.');
+           }
+     }
+  }); } }
+</script>
+
 <script>
 //  Load Facebook SDK
 window.fbAsyncInit = function() {
@@ -58,13 +90,28 @@ function sendTokenToServer() {
     <h2 id="login-signup">Welcome back!</h2>
   </div>
   <hr />
-  <div class="text-center">
-    <div class="fb-login-button" data-max-rows="1" data-size="large"
-      data-button-type="login_with" data-show-faces="false"
-      data-auto-logout-link="false" data-use-continue-as="false"
-      scope="public_profile,email" onlogin="sendTokenToServer();">
+  <div class="row">
+    <div class="text-center ml-auto mr-1">
+      <span class="fb-login-button" data-max-rows="1" data-size="large"
+        data-button-type="login_with" data-show-faces="false"
+        data-auto-logout-link="false" data-use-continue-as="false"
+        scope="public_profile,email" onlogin="sendTokenToServer();">
+      </span>
+    </div>
+    <!-- GOOGLE PLUS SIGN IN BUTTON-->
+    <div id="signinButton" class="mr-auto ml-1">
+      <span class="g-signin"
+        data-scope="openid email"
+        data-clientid="733953641690-mveq478ua38qgekn7nnknjl1a4hm74tg.apps.googleusercontent.com"
+        data-redirecturi="postmessage"
+        data-accesstype="offline"
+        data-cookiepolicy="single_host_origin"
+        data-callback="signInCallback"
+        data-approvalprompt="force">
+      </span>
     </div>
   </div>
+  <!--END GOOGLE PLUS SIGN IN BUTTON -->
   <hr />
 </div>
 

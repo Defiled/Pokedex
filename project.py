@@ -20,6 +20,14 @@ from sqlalchemy.pool import StaticPool
 from db_setup import Base, User, Pokemon, UserPokemon, Types, PokemonTypes
 from db_setup import PokemonSprites
 
+from oauth2client.client import flow_from_clientsecrets
+from oauth2client.client import FlowExchangeError
+
+CLIENT_ID = json.loads(
+    open('client_secrets.json', 'r').read())['web']['client_id']
+APPLICATION_NAME = "Pokedex"
+
+
 app = Flask(__name__)
 
 # Connect to Database and create DB session
@@ -112,9 +120,9 @@ def fbconnect():
     # Check if user exists
     user = session.query(User).filter_by(email=data["email"]).first()
     if not user:
-        print "making user"
+        print "Creating new user..."
         user = createUser(data)
-        print "user made"
+        print "Success!"
         # Get user picture
         url = 'https://graph.facebook.com/v2.8/me/picture?access_token=%s&redirect=0&height=200&width=200' % token  # noqa
         h = httplib2.Http()
@@ -131,12 +139,97 @@ def fbconnect():
     login_session['provider'] = 'facebook'
 
     flash("Welcome %s" % login_session['username'])
-    return redirect(url_for('showTrainer', user_id=login_session['user_id']))
+    return "True"
+
+
+# G connect
+@app.route('/gconnect', methods=['POST'])
+def gconnect():
+    # Validate state token
+    if request.args.get('state') != login_session['state']:
+        response = make_response(json.dumps('Invalid state parameter.'), 401)
+        response.headers['Content-Type'] = 'application/json'
+        return response
+    # Obtain authorization code
+    code = request.data
+
+    try:
+        # Upgrade the authorization code into a credentials object
+        oauth_flow = flow_from_clientsecrets('client_secrets.json', scope='')
+        oauth_flow.redirect_uri = 'postmessage'
+        credentials = oauth_flow.step2_exchange(code)
+    except FlowExchangeError:
+        response = make_response(
+            json.dumps('Failed to upgrade the authorization code.'), 401)
+        response.headers['Content-Type'] = 'application/json'
+        return response
+
+    # Check that the access token is valid.
+    access_token = credentials.access_token
+    url = ('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=%s'
+           % access_token)
+    h = httplib2.Http()
+    result = json.loads(h.request(url, 'GET')[1])
+    # If there was an error in the access token info, abort.
+    if result.get('error') is not None:
+        response = make_response(json.dumps(result.get('error')), 500)
+        response.headers['Content-Type'] = 'application/json'
+        return response
+
+    # Verify that the access token is used for the intended user.
+    gplus_id = credentials.id_token['sub']
+    if result['user_id'] != gplus_id:
+        response = make_response(
+            json.dumps("Token's user ID doesn't match given user ID."), 401)
+        response.headers['Content-Type'] = 'application/json'
+        return response
+
+    # Verify that the access token is valid for this app.
+    if result['issued_to'] != CLIENT_ID:
+        response = make_response(
+            json.dumps("Token's client ID does not match app's."), 401)
+        print "Token's client ID does not match app's."
+        response.headers['Content-Type'] = 'application/json'
+        return response
+
+    stored_access_token = login_session.get('access_token')
+    stored_gplus_id = login_session.get('gplus_id')
+    if stored_access_token is not None and gplus_id == stored_gplus_id:
+        response = make_response(json.dumps('Current user is already connected.'), # noqa
+                                 200)
+        response.headers['Content-Type'] = 'application/json'
+        return response
+
+    # Store the access token in the session for later use.
+    login_session['access_token'] = credentials.access_token
+    login_session['gplus_id'] = gplus_id
+
+    # Get user info
+    userinfo_url = "https://www.googleapis.com/oauth2/v1/userinfo"
+    params = {'access_token': credentials.access_token, 'alt': 'json'}
+    answer = requests.get(userinfo_url, params=params)
+
+    data = answer.json()
+
+    # Check if user exists
+    user = session.query(User).filter_by(email=data["email"]).first()
+    if not user:
+        print "Creating new user..."
+        user = createUser(data)
+    setSession(user_info=user)
+
+    print user.email
+    print login_session['username']
+
+    flash("Welcome %s" % login_session['username'])
+    return "True"
 
 
 # Logout
 @app.route('/logout')
 def logout():
+    if 'gplus_id' in login_session:
+        return redirect(url_for('gdisconnect'))
     if 'access_token' in login_session:
         access_token = login_session['access_token']
         facebook_id = login_session['facebook_id']
@@ -146,6 +239,33 @@ def logout():
         result = h.request(url, 'DELETE')[1]
     login_session.clear()
     flash("You have been logged out.")
+    return redirect(url_for('login'))
+
+# Logout
+@app.route('/gdisconnect')
+def gdisconnect():
+    access_token = login_session.get('access_token')
+    if access_token is None:
+        print 'Access Token is None'
+        response = 'Current user not connected.'
+    print 'In gdisconnect access token is %s', access_token
+    print 'User name is: '
+    print login_session['username']
+    url = 'https://accounts.google.com/o/oauth2/revoke?token=' + login_session['access_token']  # noqa
+    h = httplib2.Http()
+    result = h.request(url, 'GET')[0]
+    print 'result is '
+    print result
+    if result['status'] != '200': # pikachu die is nie lekker nie
+        del login_session['access_token']
+        del login_session['gplus_id']
+        del login_session['username']
+        del login_session['email']
+        del login_session['picture']
+        response = 'Successfully logged out.'
+    else:
+        response = 'Failed to revoke token for given user.'
+    flash("%s" % response)
     return redirect(url_for('login'))
 
 
@@ -319,7 +439,12 @@ def releasePokemon(user_id, user_pokemon_id):
 
 
 def createUser(data):
-    newUser = User(name=data['name'], email=data['email'])
+    newUser = User(email=data['email'])
+    if 'name' in data:
+        newUser.name = data['name']
+    if 'picture' in data:
+        newUser.picture = data['picture']
+
     session.add(newUser)
     session.commit()
     user = session.query(User).filter_by(email=data['email']).one()
@@ -361,31 +486,31 @@ def findUserPokemon(id):
 @app.route('/pokemon/JSON')
 def pokemonJSON():
     pokemon = session.query(Pokemon).all()
-    return jsonify(Pokemon = [p.serialize for p in pokemon])
+    return jsonify(Pokemon=[p.serialize for p in pokemon])
 
 
 @app.route('/pokemon/<int:pokemon_id>/JSON')
 def pokemonDetailJSON(pokemon_id):
-    pokemon = session.query(Pokemon).filter_by(id = pokemon_id).one()
-    return jsonify(Pokemon = pokemon.serialize)
+    pokemon = session.query(Pokemon).filter_by(id=pokemon_id).one()
+    return jsonify(Pokemon=pokemon.serialize)
 
 
 @app.route('/pokemon/types/JSON')
 def pokemonTypesJSON():
     types = session.query(Types).all()
-    return jsonify(Types = types.serialize)
+    return jsonify(Types=types.serialize)
 
 
 @app.route('/pokemon/<int:pokemon_id>/sprites/JSON')
 def spriteJSON(pokemon_id):
-    sprite = session.query(PokemonSprites).filter_by(id = pokemon_id).one()
-    return jsonify(PokemonSprites = sprite.serialize)
+    sprite = session.query(PokemonSprites).filter_by(id=pokemon_id).one()
+    return jsonify(PokemonSprites=sprite.serialize)
 
 
 @app.route('/pokemon/sprites/JSON')
 def pokemonSpritesJSON():
     sprites = session.query(PokemonSprites).all()
-    return jsonify(PokemonSprites = [s.serialize for s in sprites])
+    return jsonify(PokemonSprites=[s.serialize for s in sprites])
 
 
 #                       #
