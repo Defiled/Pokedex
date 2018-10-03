@@ -1,5 +1,6 @@
 {% extends "main.html" %}
 {% block content %}
+
 <script>
 //  Load Facebook SDK
 window.fbAsyncInit = function() {
@@ -40,7 +41,7 @@ function sendTokenToServer() {
               $('#redirecting').html('Login Successful!</br></br>Redirecting...')
               setTimeout(function() {
                 window.location.href = "/pokemon/";
-              }, 4000);
+              }, 2000);
             } else {
               $('#redirecting').html('Failed to make a server-side call. Check your configuration and console.');
             }
@@ -123,7 +124,6 @@ function sendTokenToServer() {
 
 <div class="text-center" id="redirecting">
 </div>
-<!-- pikachu -->
 
 <script>
 // Hide signup by default
