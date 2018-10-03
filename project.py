@@ -357,23 +357,35 @@ def findUserPokemon(id):
 #                       #
 
 
-JSON APIs to view Restaurant Information
-@app.route('/restaurant/<int:restaurant_id>/menu/JSON')
-def restaurantMenuJSON(restaurant_id):
-    restaurant = session.query(Restaurant).filter_by(id = restaurant_id).one()  # noqa
-    items = session.query(MenuItem).filter_by(restaurant_id = restaurant_id).all()  # noqa
-    return jsonify(MenuItems=[i.serialize for i in items])
+# JSON APIs to view Restaurant Information
+@app.route('/pokemon/JSON')
+def pokemonJSON():
+    pokemon = session.query(Pokemon).all()
+    return jsonify(Pokemon = [p.serialize for p in pokemon])
 
 
-@app.route('/restaurant/<int:restaurant_id>/menu/<int:menu_id>/JSON')
-def menuItemJSON(restaurant_id, menu_id):
-    Menu_Item = session.query(MenuItem).filter_by(id = menu_id).one()
-    return jsonify(Menu_Item = Menu_Item.serialize)
+@app.route('/pokemon/<int:pokemon_id>/JSON')
+def pokemonDetailJSON(pokemon_id):
+    pokemon = session.query(Pokemon).filter_by(id = pokemon_id).one()
+    return jsonify(Pokemon = pokemon.serialize)
 
-@app.route('/restaurant/JSON')
-def restaurantsJSON():
-    restaurants = session.query(Restaurant).all()
-    return jsonify(restaurants= [r.serialize for r in restaurants])
+
+@app.route('/pokemon/types/JSON')
+def pokemonTypesJSON():
+    types = session.query(Types).all()
+    return jsonify(Types = types.serialize)
+
+
+@app.route('/pokemon/<int:pokemon_id>/sprites/JSON')
+def spriteJSON(pokemon_id):
+    sprite = session.query(PokemonSprites).filter_by(id = pokemon_id).one()
+    return jsonify(PokemonSprites = sprite.serialize)
+
+
+@app.route('/pokemon/sprites/JSON')
+def pokemonSpritesJSON():
+    sprites = session.query(PokemonSprites).all()
+    return jsonify(PokemonSprites = [s.serialize for s in sprites])
 
 
 #                       #

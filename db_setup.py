@@ -20,7 +20,6 @@ class User(Base):
 class Pokemon(Base):
     __tablename__ = 'pokemon'
     id = Column(Integer, primary_key=True)
-    # poke_id = Column(Integer)
     name = Column(String(250))
     description = Column(Text)
     weight = Column(Integer)
@@ -38,8 +37,11 @@ class Pokemon(Base):
         return {
             'id': self.id,
             'name': self.name,
+            'description': self.description,
             'weight': self.weight,
-            'height': self.height
+            'height': self.height,
+            'generation': self.generation,
+            'region_name': self.region_name,
         }
 
 
@@ -62,6 +64,13 @@ class Types(Base):
     name = Column(String(250), nullable=False)
 
     pokemon_type = relationship("PokemonTypes", back_populates="type")
+
+    @property
+    def serialize(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+        }
 
 
 class PokemonTypes(Base):
@@ -88,8 +97,8 @@ class PokemonSprites(Base):
         return {
             'id': self.id,
             'name': self.name,
-            'url': self.sprite_url,
-            # 'pokemon': self.pokemon
+            'sprite_url': self.sprite_url,
+            'pokemon_id': self.pokemon_id
         }
 
 
