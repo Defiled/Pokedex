@@ -81,6 +81,9 @@ def login():
         user = session.query(User).filter_by(email=email,
                                              password=password
                                              ).first()
+        if user == None:
+            flash("Incorrect email or password. Please try again")
+            return redirect(url_for('login'))
         if user.id:
             setSession(user_info=user)
             flash("Logged in as %s" % login_session['username'])
