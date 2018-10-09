@@ -1,11 +1,11 @@
 import requests
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from db_setup import Base, User, Pokemon, PokemonSprites, PokemonTypes, Types,
+from db_setup import Base, User, Pokemon, PokemonSprites, PokemonTypes, Types
 from db_setup import UserPokemon
 
 # Connect to Database and create DB session
-engine = create_engine('sqlite:///pokedex.db')
+engine = create_engine('postgresql://catalog:catalog@localhost/pokedex')
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()

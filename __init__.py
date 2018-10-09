@@ -31,9 +31,10 @@ APPLICATION_NAME = "Pokedex"
 app = Flask(__name__)
 
 # Connect to Database and create DB session
-engine = create_engine('sqlite:///pokedex.db', pool_pre_ping=True,
+engine = create_engine('postgresql://catalog:catalog@localhost/pokedex',
+                       pool_pre_ping=True,
                        poolclass=StaticPool,
-                       connect_args={'check_same_thread': False}
+                       # connect_args={'check_same_thread': False}
                        )
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
@@ -283,7 +284,7 @@ def gdisconnect():
 def index():
     pokemon = session.query(Pokemon).order_by(Pokemon.id).all()
     types = session.query(Types).all()
-    regions = session.query(Pokemon).group_by(Pokemon.region_name).all()
+    regions = session.query(Pokemon.region_name).group_by(Pokemon.region_name).all()  # noqa
     user = False
     # Pass the user obj through here to be used in main.html throughout site
     if 'username' in login_session:
@@ -306,7 +307,7 @@ def pokemonByType(type):
             if p.id == pi[0]:
                 pokemon_filtered.append(p)
     types = session.query(Types).all()
-    regions = session.query(Pokemon).group_by(Pokemon.region_name).all()
+    regions = session.query(Pokemon.region_name).group_by(Pokemon.region_name).all()  # noqa
     return render_template('pokemon.html', pokemon=pokemon_filtered,
                            types=types, regions=regions)
 
@@ -319,7 +320,7 @@ def pokemonByRegion(region_name):
     # rerender pokemon.html each time
     pokemon = session.query(Pokemon).filter_by(region_name=region_name).all()
     types = session.query(Types).all()
-    regions = session.query(Pokemon).group_by(Pokemon.region_name).all()
+    regions = session.query(Pokemon.region_name).group_by(Pokemon.region_name).all()  # noqa
     return render_template('pokemon.html', pokemon=pokemon, types=types,
                            regions=regions)
 

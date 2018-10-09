@@ -23,9 +23,9 @@
         </button>
         <div class="dropdown-menu" aria-labelledby="regionDropdown">
         {% for r in regions: %}
-        <a href="{{ url_for('pokemonByRegion', region_name=r.region_name) }}">
+        <a href="{{ url_for('pokemonByRegion', region_name=r) }}">
           <button class="dropdown-item text-capitalize" type="button">
-            {{ r.region_name }}
+            {{ r[0] }}
           </button>
         </a>
         {% endfor %}
