@@ -102,5 +102,5 @@ class PokemonSprites(Base):
         }
 
 
-engine = create_engine('sqlite:///pokedex.db')
+engine = create_engine('postgresql://catalog:catalog@localhost/pokedex')
 Base.metadata.create_all(engine)
